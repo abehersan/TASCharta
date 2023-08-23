@@ -1,20 +1,20 @@
 """
 parse_ill.jl
 
-Load and parse ILL format scan file to DataFrame for post-processing
+Parse ILL format file to DataFrame for post-processing
 """
 
 
-function read_ill(fs::String)
+function parse_ill_file(filepath::String; ncol::Symbol=:M1)::DataFrame
     numor::String = ""
     instr::String = ""
     column_start::Int = -1
     data_start::Int = -1
-    open(fs) do file
+    open(filepath) do file
         for (index, line) in enumerate(eachline(file))
-            # if occursin("INSTR: ", line)
-            #     instr = line[7:end]
-            # end
+            if occursin("INSTR: ", line)
+                instr *= line[7:end]
+            end
             if occursin("FILE_: ", line)
                 numor *= line[7:end]
             end
@@ -25,12 +25,23 @@ function read_ill(fs::String)
             end
         end
     end
-    display(numor[2:end])
-    DataFrame(CSV.File(fs, header=column_start, skipto=data_start,
+    df::DataFrame = DataFrame(CSV.File(filepath, header=column_start, skipto=data_start,
                        delim=" ", ignorerepeated=true, stripwhitespace=true,
                        drop=[:PNT], types=Float64))
+    df[!, :NUMOR] .= numor[2:end]
+    df[!, :INSTR] .= instr[2:end]
+    df[!, :I] .= df[!, :CNTS] ./ df[!, ncol]
+    df[!, :I_ERR] .= sqrt.(df[!, :CNTS]) ./ df[!, ncol]
+    df
 end
 
-# using BenchmarkTools
-# @benchmark read_ill("./eiger2022n003415.scn")
-# fs = read_ill("./eiger2022n003415.scn")
+
+function parse_numor(data_prefix::String;
+                    numor::Int64, ncol::Symbol=:M1)::DataFrame
+    parse_ill_file(Printf.format(Printf.Format(data_prefix), numor), ncol=ncol)
+end
+
+
+function save_scan(savepath::String, df::DataFrame)
+    CSV.write(savepath, df, delim="\t")
+end
