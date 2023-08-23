@@ -1,4 +1,4 @@
-module TASOracle
+module TASCharta
 
 using DataFrames
 using Statistics
