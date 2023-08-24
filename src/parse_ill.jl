@@ -5,6 +5,15 @@ Parse ILL format file to DataFrame for post-processing
 """
 
 
+"""
+    parse_ill_file(filepath::String; ncol::Symbol=:M1)::DataFrame
+
+Parse raw ASCII file that contains an ILL-formatted scan.
+`filepath` is a string that contains the relative path of the scan.
+`ncol` is the normalization (monitor) column.
+
+Scan columns are read and returned in `DataFrame` format.
+"""
 function parse_ill_file(filepath::String; ncol::Symbol=:M1)::DataFrame
     numor::String = ""
     instr::String = ""
@@ -36,12 +45,21 @@ function parse_ill_file(filepath::String; ncol::Symbol=:M1)::DataFrame
 end
 
 
-function parse_numor(data_prefix::String;
-                    numor::Int64, ncol::Symbol=:M1)::DataFrame
+"""
+    parse_numor(data_prefix::String; numor::Int64, ncol::Symbol=:M1)::DataFrame
+
+Parse numor given a data prefix string.
+`data_prefix` is a formattable string that contains the relative path to the
+data scans. The formattable part of the string is the numor itself.
+Usually of the form 'tasp2023n%06d.dat'.
+`numor` is an integer to be replaced in the prefix.
+`ncol` is the normalization (monitor) column.
+
+Scan columns are read and returned in `DataFrame` format.
+"""
+function parse_numor(data_prefix::String; numor::Int64, ncol::Symbol=:M1)::DataFrame
     parse_ill_file(Printf.format(Printf.Format(data_prefix), numor), ncol=ncol)
 end
 
 
-function save_scan(savepath::String, df::DataFrame)
-    CSV.write(savepath, df, delim="\t")
-end
+save_scan(savepath::String, df::DataFrame) = CSV.write(savepath, df, delim="\t")
