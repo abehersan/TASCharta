@@ -5,17 +5,28 @@ Add, bin and subtract dataframes resulting from read ILL scan files
 """
 
 
-function bin_scan(df::DataFrame, xcol::Symbol;
-                 ycol::Symbol=:CNTS, ncol::Symbol=:M1,
-                 binsize::Float64=0.005)::DataFrame
+"""
+    bin_scan(df::DataFrame, xcol::Symbol, bins::Float64; ycol::Symbol=:CNTS, ncol::Symbol=:M1)::DataFrame
+
+Bin the `xcol` column of a scan `DataFrame`.
+The bins are determined linearly from the minimum and maximum of the `xcol`
+of the scan.
+`bins` is a `Float64` that determines the spacing between the bins.
+
+Neutron counts that land in the same bin are added.
+Normalization (monitor) is added as well.
+The normalized intensities are returned in `DataFrame` format.
+"""
+function bin_scan(df::DataFrame, xcol::Symbol, bins::Float64;
+                 ycol::Symbol=:CNTS, ncol::Symbol=:M1)::DataFrame
     minx, maxx = extrema(df[!, xcol])
-    linear_bins = (minx-(minx%binsize)-binsize):binsize:(maxx-(maxx%binsize)+2*binsize)
+    linear_bins = (minx-(minx%bins)-bins):bins:(maxx-(maxx%bins)+2*bins)
     df.bin_labels = cut(df[!, xcol], linear_bins, extend=true)
     grouped_df = unique(combine(groupby(df, :bin_labels),
                                xcol => mean,
                                ycol => sum,
                                ncol => sum,
-                               :NUMOR => .*,
+                               :NUMOR => first,
                                :INSTR => first,
                                renamecols=false), :bin_labels)
     grouped_df[!, :I] .= grouped_df[!, :CNTS] ./ grouped_df[!, ncol]
@@ -24,14 +35,52 @@ function bin_scan(df::DataFrame, xcol::Symbol;
 end
 
 
+"""
+    bin_scan(df::DataFrame, xcol::Symbol, bins::StepRangeLen; ycol::Symbol=:CNTS, ncol::Symbol=:M1)::DataFrame
+
+Bin the `xcol` column of a scan `DataFrame`.
+The bins are determined linearly from the minimum and maximum of the `xcol`
+of the scan.
+`bins` is a `StepRangeLen` that determines the breaks of the bins.
+
+Neutron counts that land in the same bin are added.
+Normalization (monitor) is added as well.
+The normalized intensities are returned in `DataFrame` format.
+"""
+function bin_scan(df::DataFrame, xcol::Symbol, bins::StepRangeLen;
+                 ycol::Symbol=:CNTS, ncol::Symbol=:M1)::DataFrame
+    df.bin_labels = cut(df[!, xcol], bins, extend=true)
+    grouped_df = unique(combine(groupby(df, :bin_labels),
+                               xcol => mean,
+                               ycol => sum,
+                               ncol => sum,
+                               :NUMOR => first,
+                               :INSTR => first,
+                               renamecols=false), :bin_labels)
+    grouped_df[!, :I] .= grouped_df[!, :CNTS] ./ grouped_df[!, ncol]
+    grouped_df[!, :I_ERR] .= sqrt.(grouped_df[!, :CNTS]) ./ grouped_df[!, ncol]
+    grouped_df
+end
+
+
+"""
+    add_scans(data_prefix::String, numors::Vector{Int64}, xcol::Symbol; ycol::Symbol=:CNTS, ncol::Symbol=:M1, bins::Float64=0.005)::DataFrame
+
+Bin and add (combine) scans.
+`data_prefix` is a formatted string for the location of the datafiles.
+`numors` is a vector of numors.
+`xcol` and `ycol` determine the columns that will be binned and added,
+`bins` determines the size of the linearly-spaced bins.
+
+The added scans are returned as a `DataFrame`.
+"""
 function add_scans(data_prefix::String, numors::Vector{Int64}, xcol::Symbol;
                   ycol::Symbol=:CNTS, ncol::Symbol=:M1,
-                  binsize::Float64=0.005)::DataFrame
-    df_all = vcat([parse_numor(data_prefix, numor=n, ncol=ncol) for n in numors]...,
-                 cols=:union)
+                  bins::Float64=0.005)::DataFrame
+    df_all = vcat([parse_numor(data_prefix, numor=n, ncol=ncol) for n in numors]..., cols=:union)
     added_numors = join(unique(df_all.NUMOR), "_")
     minx, maxx = extrema(df_all[!, xcol])
-    linear_bins = (minx-(minx%binsize)-binsize):binsize:(maxx-(maxx%binsize)+2*binsize)
+    linear_bins = (minx-(minx%bins)-bins):bins:(maxx-(maxx%bins)+2*bins)
     df_all.bin_labels = cut(df_all[!, xcol], linear_bins, extend=true)
     df_add = combine(groupby(df_all, :bin_labels),
                     xcol => mean,
@@ -39,7 +88,7 @@ function add_scans(data_prefix::String, numors::Vector{Int64}, xcol::Symbol;
                     ncol => sum,
                     :INSTR => first,
                     renamecols=false)
-    df_add = unique(df_add, :bin_labels)
+    unique!(df_add, :bin_labels)
     df_add[!, :NUMOR] .= added_numors
     df_add[!, :I] .= df_add[!, :CNTS] ./ df_add[!, ncol]
     df_add[!, :I_ERR] .= sqrt.(df_add[!, :CNTS]) ./ df_add[!, ncol]
@@ -47,43 +96,35 @@ function add_scans(data_prefix::String, numors::Vector{Int64}, xcol::Symbol;
 end
 
 
+"""
+    sub_scans(df_bg::DataFrame, df_fg::DataFrame, xcol::Symbol; bins::Float64=0.005, ycol::Symbol=:CNTS, ncol::Symbol=:M1)::DataFrame
+
+Bin and subtract scans.
+`df_bg` and `df_fg` are `DataFrame`s containing the scans of the background
+and the foreground respectively.
+`xcol` and `ycol` determine the columns that will be binned and subtracted,
+`bins` determines the size of the linearly-spaced bins.
+
+The subtracted scans are returned as a `DataFrame`.
+"""
 function sub_scans(df_bg::DataFrame, df_fg::DataFrame, xcol::Symbol;
-                  ycol::Symbol=:CNTS, ncol::Symbol=:M1,
-                  binsize::Float64=0.005)
-    bg, fg = copy(df_bg), copy(df_fg)
-    minx, maxx = extrema(bg[!, xcol])
-    linear_bins = (minx-(minx%binsize)-binsize):binsize:(maxx-(maxx%binsize)+2*binsize)
-    for df in [bg, fg]
-        df.bin_labels = cut(df[!, xcol], linear_bins, extend=false)
-        df = combine(groupby(df, :bin_labels),
-                   xcol => mean,
-                   ycol => sum,
-                   ncol => sum,
-                   :NUMOR => .*,
-                   :INSTR => first,
-                   renamecols=false)
-        df = unique(df, :bin_labels)
-        df[!, :I] .= df[!, :CNTS] ./ df[!, ncol]
-        df[!, :I_ERR] .= sqrt.(df[!, :CNTS]) ./ df[!, ncol]
-    end
-    gbg = groupby(bg, :bin_labels)
-    gfg = groupby(fg, :bin_labels)
-    # for df in gbg
-    #     display(df)
-    # end
-    for df_bin in gbg
-        try
-            I_fg = fg[fg.bin_labels .== df_bin.bin_labels, :].I
-            I_ERR_fg = fg[fg.bin_labels .== df_bin.bin_labels, :].I_ERR
-        catch ex
-            if isa(ex, LoadError)
-                I_fg = 0.0
-                I_fg = 0.0
-            end
+                  bins::Float64=0.005, ycol::Symbol=:CNTS, ncol::Symbol=:M1)::DataFrame
+    minx, maxx = extrema(df_fg[!, xcol])
+    linear_bins = (minx-(minx%bins)-bins):bins:(maxx-(maxx%bins)+2*bins)
+    bg = bin_scan(df_bg, xcol, linear_bins, ycol=ycol, ncol=ncol)
+    fg = bin_scan(df_fg, xcol, linear_bins, ycol=ycol, ncol=ncol)
+    df_sub = DataFrame([T[] for T in eltype.(eachcol(fg))], names(fg))
+    for fg_pnt in eachrow(fg)
+        bin = fg_pnt.bin_labels
+        bg_pnt = first(filter(:bin_labels => ==(bin), bg))
+        if isempty(bg_pnt)
+            continue
         end
-        # I_bg = df_bin.I
-        # I_ERR_bg = df_bin.I_ERR
-        # display(I_fg)
+        sub_pnt = fg_pnt
+        sub_pnt.I -= bg_pnt.I
+        sub_pnt.I_ERR = sqrt(bg_pnt.I_ERR^2 + fg_pnt.I_ERR^2)
+        sub_pnt.NUMOR = fg_pnt.NUMOR*"-"*bg_pnt.NUMOR
+        push!(df_sub, sub_pnt)
     end
-    bg, fg
+    df_sub
 end
