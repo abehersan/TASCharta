@@ -50,8 +50,9 @@ end
 
 """
 test to see if subtracting two dataframes works as intended
+    XXX: works!!!
 """
-test = false
+test = true
 if test
     bg = add_scans(data_prefix, numors_10K, :K, bins=0.0051)
     fg = add_scans(data_prefix, numors_200mK, :K, bins=0.0051)
