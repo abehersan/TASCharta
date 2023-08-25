@@ -11,6 +11,7 @@ using Plots
 
 data_prefix = "../data/tasp2023n%06d.dat"
 numors_200mK = [1375, 1376, 1377]
+numors_850mK = [1384, 1385, 1386] # T=850mK
 numors_10K = [1393, 1394, 1395]
 
 
@@ -52,10 +53,10 @@ end
 test to see if subtracting two dataframes works as intended
     XXX: works!!!
 """
-test = false
+test = true
 if test
     bg = add_scans(data_prefix, numors_10K, :K, bins=0.0051)
-    fg = add_scans(data_prefix, numors_200mK, :K, bins=0.0051)
+    fg = add_scans(data_prefix, numors_850mK, :K, bins=0.0051)
     sub = sub_scans(bg, fg, :K, bins=0.0051);
     fig = plot(xlabel="K [r.l.u.]", ylabel="Normalized Intensity")
     scatter!(fig, bg.K, bg.I, yerr=bg.I_ERR, label="BG")

@@ -127,10 +127,11 @@ function sub_scans(df_bg::DataFrame, df_fg::DataFrame, xcol::Symbol;
     df_sub::DataFrame = DataFrame([T[] for T in eltype.(eachcol(fg))], names(fg))
     for fg_pnt in eachrow(fg)
         bin = fg_pnt.bin_labels
-        bg_pnt = first(filter(:bin_labels => ==(bin), bg))
+        bg_pnt = filter(:bin_labels => ==(bin), bg)
         if isempty(bg_pnt)
             continue
         end
+        bg_pnt = first(bg_pnt)
         sub_pnt = fg_pnt
         sub_pnt.I -= bg_pnt.I
         sub_pnt.I_ERR = sqrt(bg_pnt.I_ERR^2 + fg_pnt.I_ERR^2)
