@@ -5,6 +5,17 @@ Add, bin and subtract dataframes resulting from read ILL scan files
 """
 
 
+function combination_typeaware(x::AbstractArray)
+    if eltype(x) == String
+        first(x)
+    elseif eltype(x) <: Real
+        mean(x)
+    else
+        first(x)
+    end
+end
+
+
 """
     bin_scan(df::DataFrame, xcol::Symbol, bins::Float64; ycol::Symbol=:CNTS, ncol::Symbol=:M1)::DataFrame
 
@@ -22,9 +33,9 @@ function bin_scan(df::DataFrame, xcol::Symbol, bins::Float64;
     minx, maxx = extrema(df[!, xcol])
     linear_bins = (minx-(minx%bins)-bins):bins:(maxx-(maxx%bins)+2*bins)
     df.bin_labels = cut(df[!, xcol], linear_bins, extend=true)
-    col_symbs = setdiff(propertynames(df), [xcol, ycol, ncol])
+    col_symbs = setdiff(propertynames(df), [xcol, ycol, ncol, :bin_labels])
     grouped_df::DataFrame = unique(combine(groupby(df, :bin_labels),
-                                          col_symbs .=> first,
+                                          col_symbs .=> combination_typeaware,
                                           xcol => mean,
                                           ycol => sum,
                                           ncol => sum,
@@ -50,9 +61,9 @@ The normalized intensities are returned in `DataFrame` format.
 function bin_scan(df::DataFrame, xcol::Symbol, bins::StepRangeLen;
                  ycol::Symbol=:CNTS, ncol::Symbol=:M1)::DataFrame
     df.bin_labels = cut(df[!, xcol], bins, extend=true)
-    col_symbs = setdiff(propertynames(df), [xcol, ycol, ncol])
+    col_symbs = setdiff(propertynames(df), [xcol, ycol, ncol, :bin_labels])
     grouped_df::DataFrame = unique(combine(groupby(df, :bin_labels),
-                                          col_symbs .=> first,
+                                          col_symbs .=> combination_typeaware,
                                           xcol => mean,
                                           ycol => sum,
                                           ncol => sum,
@@ -82,14 +93,13 @@ function add_scans(data_prefix::String, numors::Vector{Int64}, xcol::Symbol;
     minx, maxx = extrema(df_all[!, xcol])
     linear_bins = (minx-(minx%bins)-bins):bins:(maxx-(maxx%bins)+2*bins)
     df_all.bin_labels = cut(df_all[!, xcol], linear_bins, extend=true)
-    col_symbs = setdiff(propertynames(df_all), [xcol, ycol, ncol])
-    df_add::DataFrame = combine(groupby(df_all, :bin_labels),
-                                       col_symbs .=> first,
+    col_symbs = setdiff(propertynames(df_all), [xcol, ycol, ncol, :bin_labels])
+    df_add::DataFrame = unique(combine(groupby(df_all, :bin_labels),
+                                       col_symbs .=> combination_typeaware,
                                        xcol => mean,
                                        ycol => sum,
                                        ncol => sum,
-                                       renamecols=false)
-    unique!(df_add, :bin_labels)
+                                       renamecols=false), :bin_labels)
     df_add[!, :NUMOR] .= added_numors
     df_add[!, :I] .= df_add[!, :CNTS] ./ df_add[!, ncol]
     df_add[!, :I_ERR] .= sqrt.(df_add[!, :CNTS]) ./ df_add[!, ncol]

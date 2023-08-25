@@ -24,8 +24,8 @@ if test
     minx, maxx = extrema(tas1[!, :K])
     bins = 0.015
     linear_bins = (minx-(minx%bins)-bins):bins:(maxx-(maxx%bins)+2*bins)
-    # tas1b = bin_scan(tas1, :K, linear_bins)
-    tas1b = bin_scan(tas1, :K, bins)
+    tas1b = bin_scan(tas1, :K, linear_bins)
+    # tas1b = bin_scan(tas1, :K, bins)
     fig = plot(xlabel="K [r.l.u.]", ylabel="Normalized Intensity")
     plot!(fig, tas1.K, tas1.I, yerr=tas1.I_ERR, label="Original")
     scatter!(fig, tas1b.K, tas1b.I, yerr=tas1b.I_ERR, label="Binned")
@@ -52,7 +52,7 @@ end
 test to see if subtracting two dataframes works as intended
     XXX: works!!!
 """
-test = true
+test = false
 if test
     bg = add_scans(data_prefix, numors_10K, :K, bins=0.0051)
     fg = add_scans(data_prefix, numors_200mK, :K, bins=0.0051)
