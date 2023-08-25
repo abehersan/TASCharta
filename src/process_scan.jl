@@ -17,7 +17,7 @@ end
 
 
 """
-    bin_scan(df::DataFrame, xcol::Symbol, bins::Float64; ycol::Symbol=:CNTS, ncol::Symbol=:M1)::DataFrame
+    bin_scan!(df::DataFrame, xcol::Symbol, bins::Float64; ycol::Symbol=:CNTS, ncol::Symbol=:M1)::DataFrame
 
 Bin the `xcol` column of a scan `DataFrame`.
 The bins are determined linearly from the minimum and maximum of the `xcol`
@@ -29,20 +29,20 @@ Normalization (monitor) is added as well.
 The normalized intensities are returned in `DataFrame` format.
 """
 function bin_scan(df::DataFrame, xcol::Symbol, bins::Float64;
-                 ycol::Symbol=:CNTS, ncol::Symbol=:M1)::DataFrame
+                  ycol::Symbol=:CNTS, ncol::Symbol=:M1)::DataFrame
     minx, maxx = extrema(df[!, xcol])
     linear_bins = (minx-(minx%bins)-bins):bins:(maxx-(maxx%bins)+2*bins)
     df.bin_labels = cut(df[!, xcol], linear_bins, extend=true)
     col_symbs = setdiff(propertynames(df), [xcol, ycol, ncol, :bin_labels])
-    grouped_df::DataFrame = unique(combine(groupby(df, :bin_labels),
-                                          col_symbs .=> combination_typeaware,
-                                          xcol => mean,
-                                          ycol => sum,
-                                          ncol => sum,
-                                          renamecols=false), :bin_labels)
-    grouped_df[!, :I] .= grouped_df[!, :CNTS] ./ grouped_df[!, ncol]
-    grouped_df[!, :I_ERR] .= sqrt.(grouped_df[!, :CNTS]) ./ grouped_df[!, ncol]
-    grouped_df
+    df = unique(combine(groupby(df, :bin_labels),
+                           col_symbs .=> combination_typeaware,
+                           xcol => mean,
+                           ycol => sum,
+                           ncol => sum,
+                           renamecols=false), :bin_labels)
+    df[!, :I] .= df[!, :CNTS] ./ df[!, ncol]
+    df[!, :I_ERR] .= sqrt.(df[!, :CNTS]) ./ df[!, ncol]
+    df
 end
 
 
@@ -62,15 +62,15 @@ function bin_scan(df::DataFrame, xcol::Symbol, bins::StepRangeLen;
                  ycol::Symbol=:CNTS, ncol::Symbol=:M1)::DataFrame
     df.bin_labels = cut(df[!, xcol], bins, extend=true)
     col_symbs = setdiff(propertynames(df), [xcol, ycol, ncol, :bin_labels])
-    grouped_df::DataFrame = unique(combine(groupby(df, :bin_labels),
-                                          col_symbs .=> combination_typeaware,
-                                          xcol => mean,
-                                          ycol => sum,
-                                          ncol => sum,
-                                          renamecols=false), :bin_labels)
-    grouped_df[!, :I] .= grouped_df[!, :CNTS] ./ grouped_df[!, ncol]
-    grouped_df[!, :I_ERR] .= sqrt.(grouped_df[!, :CNTS]) ./ grouped_df[!, ncol]
-    grouped_df
+    df = unique(combine(groupby(df, :bin_labels),
+                           col_symbs .=> combination_typeaware,
+                           xcol => mean,
+                           ycol => sum,
+                           ncol => sum,
+                           renamecols=false), :bin_labels)
+    df[!, :I] .= df[!, :CNTS] ./ df[!, ncol]
+    df[!, :I_ERR] .= sqrt.(df[!, :CNTS]) ./ df[!, ncol]
+    df
 end
 
 

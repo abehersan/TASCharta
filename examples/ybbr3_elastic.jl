@@ -19,18 +19,21 @@ numors_10K = [1393, 1394, 1395]
 test to see if binning of a single scan (dframe) works as intended
     XXX: works!!!
 """
-test = false
+test = true
 if test
+    fig = plot(xlabel="K [r.l.u.]", ylabel="Normalized Intensity")
     tas1 = parse_numor(data_prefix, numor=numors_10K[1], ncol=:M1)
+    plot!(fig, tas1.K, tas1.I, yerr=tas1.I_ERR, label="Original")
+    display(tas1)
+
     minx, maxx = extrema(tas1[!, :K])
     bins = 0.015
     linear_bins = (minx-(minx%bins)-bins):bins:(maxx-(maxx%bins)+2*bins)
-    tas1b = bin_scan(tas1, :K, linear_bins)
-    # tas1b = bin_scan(tas1, :K, bins)
-    fig = plot(xlabel="K [r.l.u.]", ylabel="Normalized Intensity")
-    plot!(fig, tas1.K, tas1.I, yerr=tas1.I_ERR, label="Original")
+    # bin_scan!(tas1, :K, linear_bins)
+    tas1b = bin_scan(tas1, :K, bins)
     scatter!(fig, tas1b.K, tas1b.I, yerr=tas1b.I_ERR, label="Binned")
     display(fig)
+    display(tas1b)
 end
 
 
@@ -53,7 +56,7 @@ end
 test to see if subtracting two dataframes works as intended
     XXX: works!!!
 """
-test = true
+test = false
 if test
     bg = add_scans(data_prefix, numors_10K, :K, bins=0.0051)
     fg = add_scans(data_prefix, numors_850mK, :K, bins=0.0051)
