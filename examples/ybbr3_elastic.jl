@@ -5,7 +5,7 @@ Load, bin, add and subtract YbBr3 elastic scans at TASP
 """
 
 
-using TASCharta
+using SINQCharta
 using Plots
 
 

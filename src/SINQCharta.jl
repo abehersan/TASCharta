@@ -8,8 +8,12 @@ using Printf
 
 include("parse_ill.jl")
 export parse_ill_file
-export parse_numor
+export parse_numor_ill
 export save_scan
+
+include("parse_zebra.jl")
+export parse_zebra_pointdet
+export parse_numor_zebra
 
 include("process_scan.jl")
 export bin_scan
