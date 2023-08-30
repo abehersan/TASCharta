@@ -1,4 +1,4 @@
-module TASCharta
+module SINQCharta
 
 using DataFrames
 using Statistics
