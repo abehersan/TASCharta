@@ -16,6 +16,7 @@ export parse_zebra_pointdet
 export parse_numor_zebra
 
 include("process_scan.jl")
+export normalize_counts!
 export bin_scan
 export add_scans
 export sub_scans

@@ -56,8 +56,6 @@ function parse_zebra_pointdet(filepath::String; ncol::Symbol=:Monitor1)::DataFra
     end
     df[!, :NUMOR] .= numor[2:end]
     df[!, :INSTR] .= instr[1:end]
-    df[!, :I] .= df[!, :Counts] ./ df[!, ncol]
-    df[!, :I_ERR] .= sqrt.(df[!, :Counts]) ./ df[!, ncol]
     df
 end
 

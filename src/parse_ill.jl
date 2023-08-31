@@ -39,8 +39,6 @@ function parse_ill_file(filepath::String; ncol::Symbol=:M1)::DataFrame
                        drop=[:PNT], types=Float64))
     df[!, :NUMOR] .= numor[2:end]
     df[!, :INSTR] .= instr[2:end]
-    df[!, :I] .= df[!, :CNTS] ./ df[!, ncol]
-    df[!, :I_ERR] .= sqrt.(df[!, :CNTS]) ./ df[!, ncol]
     df
 end
 

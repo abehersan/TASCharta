@@ -17,6 +17,18 @@ end
 
 
 """
+    normalize_counts!(df::DataFrame; ycol::Symbol, ncol::Symbol)
+
+Normalize the recorded counts per bin to the standard monitor for the bin.
+Counts and normalization column symbols are passed as kwargs.
+"""
+function normalize_counts!(df::DataFrame; ycol::Symbol, ncol::Symbol)
+    df[!, :I] .= df[!, ycol] ./ df[!, ncol]
+    df[!, :I_ERR] .= sqrt.(df[!, ycol]) ./ df[!, ncol]
+end
+
+
+"""
     bin_scan!(df::DataFrame, xcol::Symbol, bins::Float64; ycol::Symbol=:CNTS, ncol::Symbol=:M1)::DataFrame
 
 Bin the `xcol` column of a scan `DataFrame`.
@@ -40,8 +52,6 @@ function bin_scan(df::DataFrame, xcol::Symbol, bins::Float64;
                            ycol => sum,
                            ncol => sum,
                            renamecols=false), :bin_labels)
-    df[!, :I] .= df[!, :CNTS] ./ df[!, ncol]
-    df[!, :I_ERR] .= sqrt.(df[!, :CNTS]) ./ df[!, ncol]
     df
 end
 
@@ -68,27 +78,27 @@ function bin_scan(df::DataFrame, xcol::Symbol, bins::StepRangeLen;
                            ycol => sum,
                            ncol => sum,
                            renamecols=false), :bin_labels)
-    df[!, :I] .= df[!, :CNTS] ./ df[!, ncol]
-    df[!, :I_ERR] .= sqrt.(df[!, :CNTS]) ./ df[!, ncol]
     df
 end
 
 
 """
-    add_scans(data_prefix::String, numors::Vector{Int64}, xcol::Symbol; ycol::Symbol=:CNTS, ncol::Symbol=:M1, bins::Float64=0.005)::DataFrame
+    add_scans(data_prefix::String, numors::Vector{Int64}, xcol::Symbol; ycol::Symbol=:CNTS, ncol::Symbol=:M1, parse_func::Function, bins::Float64=0.005)::DataFrame
 
 Bin and add (combine) scans.
 `data_prefix` is a formatted string for the location of the datafiles.
 `numors` is a vector of numors.
 `xcol` and `ycol` determine the columns that will be binned and added,
 `bins` determines the size of the linearly-spaced bins.
+`parse_func` is a parsing function that takes in a `data_prefix` and a `numor`
+and `ncol` as kwargs
 
 The added scans are returned as a `DataFrame`.
 """
 function add_scans(data_prefix::String, numors::Vector{Int64}, xcol::Symbol;
-                  ycol::Symbol=:CNTS, ncol::Symbol=:M1,
+                  ycol::Symbol=:CNTS, ncol::Symbol=:M1, parse_func::Function,
                   bins::Float64=0.005)::DataFrame
-    df_all::DataFrame = vcat([parse_numor(data_prefix, numor=n, ncol=ncol) for n in numors]..., cols=:union)
+    df_all::DataFrame = vcat([parse_func(data_prefix, numor=n, ncol=ncol) for n in numors]..., cols=:union)
     added_numors::String = join(unique(df_all.NUMOR), "_")
     minx, maxx = extrema(df_all[!, xcol])
     linear_bins = (minx-(minx%bins)-bins):bins:(maxx-(maxx%bins)+2*bins)
@@ -101,8 +111,6 @@ function add_scans(data_prefix::String, numors::Vector{Int64}, xcol::Symbol;
                                        ncol => sum,
                                        renamecols=false), :bin_labels)
     df_add[!, :NUMOR] .= added_numors
-    df_add[!, :I] .= df_add[!, :CNTS] ./ df_add[!, ncol]
-    df_add[!, :I_ERR] .= sqrt.(df_add[!, :CNTS]) ./ df_add[!, ncol]
     df_add
 end
 
