@@ -17,6 +17,8 @@ function save_scan(savepath::String, df::DataFrame)::Nothing
     catch e
         if isa(ArgumentError, e)
             df_save = df
+        else
+            df_save = df
         end
     end
     CSV.write(savepath, df_save, delim="\t")
