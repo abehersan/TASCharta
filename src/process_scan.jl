@@ -120,7 +120,8 @@ function add_scans(data_prefix::String, numors::Vector{Int64}, xcol::Symbol;
     df_all::DataFrame = vcat([parse_func(data_prefix, numor=n) for n in numors]..., cols=:union)
     added_numors::String = join(unique(df_all.NUMOR), "_")
     minx, maxx = extrema(df_all[!, xcol])
-    linear_bins = (minx-(minx%bins)-bins):bins:(maxx-(maxx%bins)+2*bins)
+    # linear_bins = (minx-(minx%bins)-bins):bins:(maxx-(maxx%bins)+2*bins)
+    linear_bins = minx:bins:maxx
     df_all.bin_labels = cut(df_all[!, xcol], linear_bins, extend=true)
     col_symbs = setdiff(propertynames(df_all), [xcol, ycol, ncol, :bin_labels])
     df_add::DataFrame = unique(combine(groupby(df_all, :bin_labels),
