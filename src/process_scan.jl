@@ -12,16 +12,7 @@ Utility function. Saves `df` as a tab-separated `csv` under the `savepath`
 name and location.
 """
 function save_scan(savepath::String, df::DataFrame)::Nothing
-    try
-        df_save = select(df, Not(:bin_labels))
-    catch e
-        if isa(ArgumentError, e)
-            df_save = df
-        else
-            df_save = df
-        end
-    end
-    CSV.write(savepath, df_save, delim="\t")
+    CSV.write(savepath, df, delim="\t")
     return
 end
 
