@@ -117,7 +117,7 @@ The added scans are returned as a `DataFrame`.
 function add_scans(data_prefix::String, numors::Vector{Int64}, xcol::Symbol;
                   ycol::Symbol=:CNTS, ncol::Symbol=:M1, parse_func::Function,
                   bins::Float64=0.005)::DataFrame
-    df_all::DataFrame = vcat([parse_func(data_prefix, numor=n, ncol=ncol) for n in numors]..., cols=:union)
+    df_all::DataFrame = vcat([parse_func(data_prefix, numor=n) for n in numors]..., cols=:union)
     added_numors::String = join(unique(df_all.NUMOR), "_")
     minx, maxx = extrema(df_all[!, xcol])
     linear_bins = (minx-(minx%bins)-bins):bins:(maxx-(maxx%bins)+2*bins)
