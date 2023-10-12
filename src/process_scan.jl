@@ -5,6 +5,25 @@ Add, bin and subtract dataframes resulting from read ILL scan files
 """
 
 
+"""
+    save_scan(savepath::String, df::DataFrame)::Nothing
+
+Utility function. Saves `df` as a tab-separated `csv` under the `savepath`
+name and location.
+"""
+function save_scan(savepath::String, df::DataFrame)::Nothing
+    try
+        df_save = select(df, Not(:bin_labels))
+    catch e
+        if isa(ArgumentError, e)
+            df_save = df
+        end
+    end
+    CSV.write(savepath, df_save, delim="\t")
+    return
+end
+
+
 function combination_typeaware(x::AbstractArray)
     if eltype(x) == String
         first(x)
