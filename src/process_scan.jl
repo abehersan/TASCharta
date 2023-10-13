@@ -12,7 +12,7 @@ Utility function. Saves `df` as a tab-separated `csv` under the `savepath`
 name and location.
 """
 function save_scan(savepath::String, df::DataFrame)::Nothing
-    CSV.write(savepath, df, delim="\t")
+    CSV.write(savepath, df, delim=",")
     return
 end
 
