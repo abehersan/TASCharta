@@ -1,11 +1,4 @@
-"""
-parse_zebra.jl
-
-Parse ZEBRA point-detector ASCII files to DataFrame for post-processing
-"""
-
-
-"""
+@doc raw"""
     parse_zebra_pointdet(filepath::String)::DataFrame
 
 Parse raw ASCII file that contains a ZEBRA in point-detector mode.
@@ -55,11 +48,11 @@ function parse_zebra_pointdet(filepath::String)::DataFrame
     # end
     df[!, :NUMOR] .= numor[2:end]
     df[!, :INSTR] .= instr[1:end]
-    df
+    return df
 end
 
 
-"""
+@doc raw"""
     parse_numor_zebra(data_prefix::String; numor::Int64)::DataFrame
 
 Parse numor given a data prefix string.
@@ -72,5 +65,5 @@ Usually of the form 'zebra2023n%06d.dat'.
 Scan columns are read and returned in `DataFrame` format.
 """
 function parse_numor_zebra(data_prefix::String; numor::Int64)::DataFrame
-    parse_zebra_pointdet(Printf.format(Printf.Format(data_prefix), numor))
+    return parse_zebra_pointdet(Printf.format(Printf.Format(data_prefix), numor))
 end

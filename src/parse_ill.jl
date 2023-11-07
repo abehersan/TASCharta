@@ -1,11 +1,4 @@
-"""
-parse_ill.jl
-
-Parse ILL format file to DataFrame for post-processing
-"""
-
-
-"""
+@doc raw"""
     parse_ill_file(filepath::String)::DataFrame
 
 Parse raw ASCII file that contains an ILL-formatted scan.
@@ -39,11 +32,11 @@ function parse_ill_file(filepath::String)::DataFrame
                     stripwhitespace=true, drop=[:PNT], types=Float64))
     df[!, :NUMOR] .= numor[2:end]
     df[!, :INSTR] .= instr[2:end]
-    df
+    return df
 end
 
 
-"""
+@doc raw"""
     parse_numor_ill(data_prefix::String; numor::Int64)::DataFrame
 
 Parse numor given a data prefix string.
@@ -56,5 +49,5 @@ Usually of the form 'tasp2023n%06d.dat'.
 Scan columns are read and returned in `DataFrame` format.
 """
 function parse_numor_ill(data_prefix::String; numor::Int64)::DataFrame
-    parse_ill_file(Printf.format(Printf.Format(data_prefix), numor))
+    return parse_ill_file(Printf.format(Printf.Format(data_prefix), numor))
 end
