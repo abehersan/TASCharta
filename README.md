@@ -15,5 +15,3 @@ Considered data formats include:
 
   - ILL-formatted files from `TASP` and `EIGER`.
   - General ASCII files from `ZEBRA` in point-detector mode.
-  - HDF files from `DMC` using functions afforded by `DMCpy`.
-  - HDF files from `CAMEA` using functions afforded by `MJOLNIR`. 
