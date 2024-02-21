@@ -13,5 +13,6 @@ help?> SINQCharta
 
 Considered data formats include:
 
-  - ILL-formatted files from `TASP` and `EIGER`.
+  - ILL-formatted files from the spectrometers `TASP` and `EIGER`.
   - General ASCII files from `ZEBRA` in point-detector mode.
+  - ASCII files from `MPMS\PPMS` measurement devices from Quantum Design.

@@ -22,4 +22,14 @@ export add_scans
 export add_numors
 export sub_scans
 
+include("parse_qdesign.jl")
+export parse_qdesign_file
+
+include("process_qdesign.jl")
+export get_chi
+export get_mag
+export get_hc
+export make_massdict
+
+
 end
