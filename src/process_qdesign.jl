@@ -12,6 +12,26 @@ function calc_env_chi(capsule_mass::Float64, tape_mass::Float64; T::Float64)::Fl
 end
 
 
+@doc raw"""
+    function get_mag(dpath::String, mass_dict::Dict{String, Float64};
+                    corr_env::Bool=true,
+                    cols::Dict{String, String}=Dict(
+                    "T"         =>"Temperature (K)",
+                    "B"         =>"Field (Oe)",
+                    "MAG"       =>"Long Moment (emu)",
+                    "MAG_ERR"   =>"Long Scan Std Dev",
+                    ))::DataFrame
+
+Given a path `dpath` to an MPMS measurement file, extract the isothermal
+magnetisation of the sample in ATOMIC units. I.e. units of Bohr's
+magneton per chemical formula.
+The mass dictionary `mass_dict` can be generated with the `make_massdict`
+function. All masses are inputted in grams.
+If `corr_env` is set to `true`, a correction due to the sample holder
+(Apiezon grease and Kapton tape) is applied.
+The dictionary `cols` selects the columns to be parsed from the raw
+datafile.
+"""
 function get_mag(dpath::String, mass_dict::Dict{String, Float64};
                 corr_env::Bool=true,
                 cols::Dict{String, String}=Dict(
@@ -52,6 +72,29 @@ function get_mag(dpath::String, mass_dict::Dict{String, Float64};
 end
 
 
+@doc raw"""
+    function get_chi(dpath::String, mass_dict::Dict{String, Float64};
+                    corr_env::Bool=true,
+                    corr_env::Bool=true,
+                    cols::Dict{String, String}=Dict(
+                        "T"         =>"Temperature (K)",
+                        "B"         =>"Field (Oe)",
+                        "MAG"       =>"Long Moment (emu)",
+                        "MAG_ERR"   =>"Long Scan Std Dev",
+                        )
+                    )::DataFrame
+
+Given a path `dpath` to an MPMS measurement file, extract the temperature-
+dependence of the magnetisation of the sample in CGS units.
+I.e. the static magnetic susceptibility is given in electromagnetic
+units per mol of substance. This is equivalent to [cm^3/mol].
+The mass dictionary `mass_dict` can be generated with the `make_massdict`
+function. All masses are inputted in grams.
+If `corr_env` is set to `true`, a correction due to the sample holder
+(Apiezon grease and Kapton tape) is applied.
+The dictionary `cols` selects the columns to be parsed from the raw
+datafile.
+"""
 function get_chi(dpath::String, mass_dict::Dict{String, Float64};
                 corr_env::Bool=true,
                 cols::Dict{String, String}=Dict(
@@ -90,6 +133,24 @@ function get_chi(dpath::String, mass_dict::Dict{String, Float64};
 end
 
 
+@doc raw"""
+    function get_hc(dpath::String, mass_dict::Dict{String, Float64};
+                    cols::Dict{String, String}=Dict(
+                        "T"         =>"Sample Temp (Kelvin)",
+                        "B"         =>"Field (Oersted)",
+                        "HC"        =>"Total HC (\xb5J/K)",
+                        "HC_ERR"    =>"Total HC Err (\xb5J/K)",
+                        )
+                    )::DataFrame
+
+Given a path `dpath` to an MPMS measurement file, extract the total
+heat capacity of a sample as function of field or temperature.
+The heat capacity is given in SI units of J/mol/K.
+The mass dictionary `mass_dict` can be generated with the `make_massdict`
+function. All masses are inputted in grams.
+The dictionary `cols` selects the columns to be parsed from the raw
+datafile.
+"""
 function get_hc(dpath::String, mass_dict::Dict{String, Float64};
                 cols::Dict{String, String}=Dict(
                     "T"         =>"Sample Temp (Kelvin)",
@@ -115,6 +176,12 @@ function get_hc(dpath::String, mass_dict::Dict{String, Float64};
 end
 
 
+@doc raw"""
+    function make_massdict()::Dict{String, Float64}
+
+Initialize the mass dictionary required to normalise the absolute
+units in an MPMS/PPMS measurement.
+"""
 function make_massdict()::Dict{String, Float64}
     mdict = Dict(
         "molecular_weight"  => 0.0,
