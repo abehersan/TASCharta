@@ -46,9 +46,6 @@ function get_mag(dpath::String, mass_dict::Dict{String, Float64};
     molecular_weight    = mass_dict["molecular_weight"]
     sample_mass_g       = mass_dict["sample_mass_g"]
     mag_ions            = mass_dict["mag_ions"]
-    pascal_corr         = mass_dict["pascal_corr"]
-    capsule_mass_g      = mass_dict["capsule_mass_g"]
-    tape_mass_g         = mass_dict["tape_mass_g"]
 
     temps       = df_raw[!, cols["T"]]
     field       = df_raw[!, cols["B"]]
@@ -56,9 +53,13 @@ function get_mag(dpath::String, mass_dict::Dict{String, Float64};
     errmagmom   = df_raw[!, cols["MAG_ERR"]]* (molecular_weight / (sample_mass_g * mag_ions))
 
     if corr_env
+        pascal_corr     = mass_dict["pascal_corr"]
+        capsule_mass_g  = mass_dict["capsule_mass_g"]
+        tape_mass_g     = mass_dict["tape_mass_g"]
         corr = field .* ([calc_env_chi(capsule_mass_g, tape_mass_g, T=t) for t in temps] .+ pascal_corr)
     else
-        corr = 0.0
+        pascal_corr     = mass_dict["pascal_corr"]
+        corr = pascal_corr
     end
     magmom .-= corr
     magmom .*= (1/(NA*muB))
@@ -109,9 +110,6 @@ function get_chi(dpath::String, mass_dict::Dict{String, Float64};
     molecular_weight    = mass_dict["molecular_weight"]
     sample_mass_g       = mass_dict["sample_mass_g"]
     mag_ions            = mass_dict["mag_ions"]
-    pascal_corr         = mass_dict["pascal_corr"]
-    capsule_mass_g      = mass_dict["capsule_mass_g"]
-    tape_mass_g         = mass_dict["tape_mass_g"]
 
     temps   = df_raw[!, cols["T"]]
     field   = df_raw[!, cols["B"]]
@@ -119,9 +117,13 @@ function get_chi(dpath::String, mass_dict::Dict{String, Float64};
     errchi  = df_raw[!, cols["MAG_ERR"]]* (molecular_weight / (sample_mass_g * mag_ions)) ./ field
 
     if corr_env
+        pascal_corr     = mass_dict["pascal_corr"]
+        capsule_mass_g  = mass_dict["capsule_mass_g"]
+        tape_mass_g     = mass_dict["tape_mass_g"]
         corr = [calc_env_chi(capsule_mass_g, tape_mass_g, T=t) for t in temps] .+ pascal_corr
     else
-        corr = 0.0
+        pascal_corr     = mass_dict["pascal_corr"]
+        corr = pascal_corr
     end
     chi .-= corr
     errchi .-= corr
