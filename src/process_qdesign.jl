@@ -167,7 +167,7 @@ function get_hc(dpath::String, mass_dict::Dict{String, Float64};
     sample_mass_g       = mass_dict["sample_mass_g"]    # g
 
     temps   = df_raw[!, cols["T"]]
-    field   = df_raw[!, cols["B"]]
+    field   = df_raw[!, cols["B"]] .* 1e-4
     hc      = df_raw[!, cols["HC"]]     * 1e-6 * (molecular_weight/sample_mass_g) # microJ/K ---> J/mol/K
     hc_err  = df_raw[!, cols["HC_ERR"]] * 1e-6 * (molecular_weight/sample_mass_g) # microJ/K ---> J/mol/K
 
