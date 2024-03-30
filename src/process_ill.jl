@@ -1,15 +1,3 @@
-@doc raw"""
-    save_scan(savepath::String, df::DataFrame)::Nothing
-
-Utility function. Saves `df` as a tab-separated `csv` under the `savepath`
-name and location.
-"""
-function save_scan(savepath::String, df::DataFrame)::Nothing
-    CSV.write(savepath, df, delim=",")
-    return
-end
-
-
 function combination_typeaware(x::AbstractArray)
     if eltype(x) == String
         return first(x)
@@ -22,7 +10,7 @@ end
 
 
 @doc raw"""
-    normalize_counts!(df::DataFrame; ycol::Symbol, ncol::Symbol)
+    normalize_counts!(df::DataFrame; ycol::Symbol, ncol::Symbol)::Nothing
 
 Normalize the recorded counts per bin to the standard monitor.
 `ycol` is the raw counts column and `ncol` the column of the normalization.
@@ -32,52 +20,25 @@ Columns `I` and `I_ERR` are written to `df` assuming Poisson counting statistics
 function normalize_counts!(df::DataFrame; ycol::Symbol, ncol::Symbol)::Nothing
     df[!, :I] .= df[!, ycol] ./ df[!, ncol]
     df[!, :I_ERR] .= sqrt.(df[!, ycol]) ./ df[!, ncol]
-    return
+    return nothing
 end
 
 
 @doc raw"""
-    bin_scan(df::DataFrame, xcol::Symbol, bins::Float64;
-                    ycol::Symbol=:CNTS, ncol::Symbol=:M1)::DataFrame
+    rebin_scan(df::DataFrame, xcol::Symbol, ycol::Symbol, binsize::Float64)::DataFrame
 
-Bin scan along the `xcol` column. The size of the bins is specified as a single
-float `bins`.
+Rebin scan along the `xcol` column. The size of the bins is specified as a single
+float `binsize`.
 """
-function bin_scan(df::DataFrame, xcol::Symbol, bins::Float64;
-                    ycol::Symbol=:CNTS, ncol::Symbol=:M1)::DataFrame
+function rebin_scan(df::DataFrame, xcol::Symbol, ycol::Symbol, dycol::Symbol, binsize::Float64)::DataFrame
     minx, maxx = extrema(df[!, xcol])
-    linear_bins = (minx-(minx%bins)-bins):bins:(maxx-(maxx%bins)+2*bins)
-    df.bin_labels .= cut(df[!, xcol], linear_bins, extend=true)
-    col_symbs = setdiff(propertynames(df), [xcol, ycol, ncol, :bin_labels])
+    linear_bins = (minx-(minx%binsize)-binsize):binsize:(maxx-(maxx%binsize)+2*binsize)
+    df[!, :bin_labels] .= cut(df[!, xcol], linear_bins, extend=true)
     df_bin = unique(combine(groupby(df, :bin_labels),
-                            col_symbs .=> combination_typeaware,
                             xcol => mean,
-                            ycol => sum,
-                            ncol => sum,
+                            ycol => mean,
+                            dycol => x->sqrt.(sum(x .^2)) ./ length(x),
                             renamecols=false), :bin_labels)
-    normalize_counts!(df_bin, ycol=ycol, ncol=ncol)
-    return df_bin
-end
-
-
-@doc raw"""
-    bin_scan(df::DataFrame, xcol::Symbol, bins::StepRangeLen;
-                    ycol::Symbol=:CNTS, ncol::Symbol=:M1)::DataFrame
-
-Bin scan along the `xcol` column. The size of the bins is specified as a
-step range of the type `bin_start:bin_step:bin_end`.
-"""
-function bin_scan(df::DataFrame, xcol::Symbol, bins::StepRangeLen;
-                    ycol::Symbol=:CNTS, ncol::Symbol=:M1)::DataFrame
-    df.bin_labels = cut(df[!, xcol], bins, extend=true)
-    col_symbs = setdiff(propertynames(df), [xcol, ycol, ncol, :bin_labels])
-    df_bin = unique(combine(groupby(df, :bin_labels),
-                            col_symbs .=> combination_typeaware,
-                            xcol => mean,
-                            ycol => sum,
-                            ncol => sum,
-                            renamecols=false), :bin_labels)
-    normalize_counts!(df_bin, ycol=ycol, ncol=ncol)
     return df_bin
 end
 
