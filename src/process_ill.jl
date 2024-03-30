@@ -39,6 +39,9 @@ function rebin_scan(df::DataFrame, xcol::Symbol, ycol::Symbol, dycol::Symbol, bi
                             ycol => mean,
                             dycol => x->sqrt.(sum(x .^2)) ./ length(x),
                             renamecols=false), :bin_labels)
+
+    all_numors = join(unique(df[!, :NUMOR]), "_")
+    df_bin[!, :NUMOR] .= all_numors
     return df_bin
 end
 
@@ -119,12 +122,11 @@ Scans are first individually binned to common `bins`.
 Normalized intensities are then directly subtracted and the error is
 correctly propagated in quadrature.
 """
-function sub_scans(df_bg::DataFrame, df_fg::DataFrame, xcol::Symbol;
-                  bins::Float64=0.005, ycol::Symbol=:CNTS, ncol::Symbol=:M1)::DataFrame
-    minx, maxx = extrema(df_fg[!, xcol])
-    linear_bins = (minx-(minx%bins)-bins):bins:(maxx-(maxx%bins)+2*bins)
-    bg = bin_scan(df_bg, xcol, linear_bins, ycol=ycol, ncol=ncol)
-    fg = bin_scan(df_fg, xcol, linear_bins, ycol=ycol, ncol=ncol)
+function sub_scans(df_bg::DataFrame, df_fg::DataFrame,
+                    xcol::Symbol, ycol::Symbol, dycol::Symbol,
+                    binsize::Float64=0.005)::DataFrame
+    bg = rebin_scan(df_bg, xcol, ycol, dycol, binsize)
+    fg = rebin_scan(df_fg, xcol, ycol, dycol, binsize)
     df_sub = DataFrame([T[] for T in eltype.(eachcol(fg))], names(fg))
     for fg_pnt in eachrow(fg)
         bin = fg_pnt.bin_labels
