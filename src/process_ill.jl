@@ -114,11 +114,10 @@ end
 
 
 @doc raw"""
-    sub_scans(df_bg::DataFrame, df_fg::DataFrame, xcol::Symbol;
-                  bins::Float64=0.005, ycol::Symbol=:CNTS, ncol::Symbol=:M1)::DataFrame
+    sub_scans(df_bg::DataFrame, df_fg::DataFrame, xcol::Symbol, ycol::Symbol, dycol::Symbol, binsize::Float64=0.005)::DataFrame
 
 Subtract `df_bg` from `df_fg`.
-Scans are first individually binned to common `bins`.
+Scans are first individually binned to common bins with size `binsize`.
 Normalized intensities are then directly subtracted and the error is
 correctly propagated in quadrature.
 """

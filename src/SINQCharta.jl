@@ -7,7 +7,7 @@ using CSV
 using Printf
 
 include("parse_ill.jl")
-export parse_ill_file
+export parse_file_ill
 export parse_numor_ill
 
 include("parse_zebra.jl")

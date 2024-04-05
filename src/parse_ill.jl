@@ -7,7 +7,7 @@ Parse raw ASCII file that contains an ILL-formatted scan.
 
 Scan columns are read and returned in `DataFrame` format.
 """
-function parse_ill_file(filepath::String)::DataFrame
+function parse_file_ill(filepath::String)::DataFrame
     numor::String = ""
     instr::String = ""
     column_start::Int = -1
@@ -49,5 +49,5 @@ Usually of the form 'tasp2023n%06d.dat'.
 Scan columns are read and returned in `DataFrame` format.
 """
 function parse_numor_ill(data_prefix::String; numor::Int64)::DataFrame
-    return parse_ill_file(Printf.format(Printf.Format(data_prefix), numor))
+    return parse_file_ill(Printf.format(Printf.Format(data_prefix), numor))
 end
