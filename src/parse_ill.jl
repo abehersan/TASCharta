@@ -1,5 +1,5 @@
 @doc raw"""
-    parse_ill_file(filepath::String)::DataFrame
+    parse_file_ill(filepath::String)::DataFrame
 
 Parse raw ASCII file that contains an ILL-formatted scan.
 `filepath` is a string that contains the relative path of the scan.

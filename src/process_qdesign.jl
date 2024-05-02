@@ -76,7 +76,6 @@ end
 @doc raw"""
     function get_chi(dpath::String, mass_dict::Dict{String, Float64};
                     corr_env::Bool=true,
-                    corr_env::Bool=true,
                     cols::Dict{String, String}=Dict(
                         "T"         =>"Temperature (K)",
                         "B"         =>"Field (Oe)",
