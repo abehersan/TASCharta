@@ -158,7 +158,6 @@ function interp_datagrid(df::DataFrame; x::Symbol, y::Symbol, z::Symbol, dy::Flo
     YY = sort(unique(round.(df[!, y], digits=SDIG)))
     minY, maxY = extrema(YY)
     YYmod = minY:dy:maxY
-    println(length(YYmod))
     ZZ = Matrix{Float64}(undef, length(YYmod), length(XX))
     @inbounds for i in eachindex(XX)
         dfX = filter(r->isapprox(r[x], XX[i], atol=ATOL), df)
