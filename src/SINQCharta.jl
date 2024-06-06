@@ -1,11 +1,12 @@
 module SINQCharta
 
 
-using DataFrames
-using Statistics
 using CategoricalArrays
 using CSV
+using DataFrames
+using Interpolations
 using Printf
+using Statistics
 
 include("./parse_ill.jl")
 export parse_file_ill
@@ -29,6 +30,7 @@ export rebin_scan
 export add_scans
 export add_numors
 export sub_scans
+export interp_datagrid
 
 include("./parse_qdesign.jl")
 export parse_qdesign_file
