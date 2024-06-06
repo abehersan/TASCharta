@@ -142,3 +142,30 @@ function sub_scans(df_bg::DataFrame, df_fg::DataFrame,
     end
     return df_sub
 end
+
+
+@doc raw"""
+    interp_datagrid(df::DataFrame; x::Symbol, y::Symbol, z::Symbol, dy::Float64=0.025, SDIG::Int=3, ATOL::Float64=1e-3)
+
+Interpolate the contents of a `DataFrame` for heatmap plotting.
+The data is only interpolated along one direction, namely `y` with Interpolation
+step `dy`.
+`SDIG` controls the digits for rounding of floats in the `x` and `y` axes.
+`ATOL` controls the absolute tolerance for float comparison for indexing.
+"""
+function interp_datagrid(df::DataFrame; x::Symbol, y::Symbol, z::Symbol, dy::Float64=0.025, SDIG::Int=3, ATOL::Float64=1e-3)
+    XX = sort(unique(round.(df[!, x], digits=SDIG)))
+    YY = sort(unique(round.(df[!, y], digits=SDIG)))
+    minY, maxY = extrema(YY)
+    YYmod = minY:dy:maxY
+    println(length(YYmod))
+    ZZ = Matrix{Float64}(undef, length(YYmod), length(XX))
+    @inbounds for i in eachindex(XX)
+        dfX = filter(r->isapprox(r[x], XX[i], atol=ATOL), df)
+        sort!(dfX, y)
+        ZZinterpolation = LinearInterpolation(dfX[!, y], dfX[!, z], extrapolation_bc=Line())
+        ZZmod = ZZinterpolation(YYmod) * sfact
+        ZZ[:, i] = ZZmod
+    end
+    return [XX, YYmod, ZZ]
+end
