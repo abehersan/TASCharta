@@ -164,7 +164,7 @@ function interp_datagrid(df::DataFrame; x::Symbol, y::Symbol, z::Symbol, dy::Flo
         dfX = filter(r->isapprox(r[x], XX[i], atol=ATOL), df)
         sort!(dfX, y)
         ZZinterpolation = LinearInterpolation(dfX[!, y], dfX[!, z], extrapolation_bc=Line())
-        ZZmod = ZZinterpolation(YYmod) * sfact
+        ZZmod = ZZinterpolation(YYmod)
         ZZ[:, i] = ZZmod
     end
     return [XX, YYmod, ZZ]
